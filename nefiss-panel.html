@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Nefiss — Restoran Paneli</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#f5f5f5}
+input:focus{outline:none}
+::-webkit-scrollbar{display:none}
+.app{max-width:520px;margin:0 auto;min-height:100vh;background:#fff}
+
+/* HEADER */
+.hdr{padding:16px 20px;background:#FAFAFA;border-bottom:1px solid #F0F0F0}
+.hdr-top{display:flex;align-items:center;justify-content:space-between}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{font-size:28px}
+.hdr-name{font-size:17px;font-weight:800;color:#1A1A1A}
+.hdr-sub{font-size:12px;color:#9CA3AF;font-weight:500}
+.hdr-status{font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px}
+.hdr-on{background:#D1FAE5;color:#059669}
+.hdr-off{background:#FEE2E2;color:#DC2626}
+.hdr-bell{position:relative;background:none;border:none;cursor:pointer;font-size:22px;padding:4px}
+.hdr-badge{position:absolute;top:-2px;right:-4px;background:#EF4444;color:#fff;font-size:10px;font-weight:800;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid #F0F0F0;background:#fff;position:sticky;top:0;z-index:10}
+.tab{flex:1;padding:14px 8px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:none;color:#9CA3AF;border-bottom:3px solid transparent;transition:all .2s}
+.tab.on{color:#FF6B2C;border-bottom-color:#FF6B2C}
+
+/* ORDERS */
+.ord-filters{display:flex;gap:6px;padding:16px 20px;overflow-x:auto}
+.of{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;border:none;cursor:pointer;white-space:nowrap;background:#F3F4F6;color:#6B7280}
+.of.on{background:#FF6B2C;color:#fff}
+.of .badge{display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.3);border-radius:10px;padding:1px 6px;margin-left:4px;font-size:10px}
+
+.ocard{margin:0 20px 14px;border-radius:18px;padding:18px;border:1px solid #F0F0F0;box-shadow:0 1px 4px rgba(0,0,0,.03);transition:all .2s}
+.ocard.new{border:2px solid #EF4444;background:#FFFBFB;box-shadow:0 0 20px rgba(239,68,68,.08)}
+.ocard-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ocard-id{font-weight:800;font-size:14px}
+.ocard-time{font-size:12px;color:#9CA3AF;margin-left:8px}
+.ocard-st{font-size:11px;font-weight:700;padding:5px 12px;border-radius:10px}
+.st-new{background:#FEF2F2;color:#EF4444}
+.st-confirmed{background:#DBEAFE;color:#2563EB}
+.st-preparing{background:#FFF7ED;color:#F97316}
+.st-ready{background:#D1FAE5;color:#059669}
+.st-on_the_way{background:#E0E7FF;color:#4F46E5}
+.st-delivered{background:#F0FDF4;color:#16A34A}
+.st-cancelled{background:#F5F5F5;color:#999}
+.st-pending{background:#FEF3C7;color:#D97706}
+
+.ocard-cust{font-size:14px;font-weight:600;color:#1A1A1A}
+.ocard-addr{font-size:12px;color:#9CA3AF;margin-top:2px}
+.ocard-items{margin:10px 0;display:flex;flex-wrap:wrap;gap:4px}
+.ocard-item{display:inline-block;background:#F5F5F5;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:500;color:#444}
+.ocard-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.ocard-total{font-size:20px;font-weight:900;color:#FF6B2C}
+.ocard-note{font-size:12px;color:#F97316;margin-top:6px;font-style:italic}
+
+.act-btns{display:flex;gap:8px}
+.btn-accept{padding:12px 24px;border-radius:14px;border:none;background:#22C55E;color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(34,197,94,.3);display:flex;align-items:center;gap:6px}
+.btn-reject{padding:12px 20px;border-radius:14px;border:2px solid #EF4444;background:#fff;color:#EF4444;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
+.btn-blue{padding:12px 24px;border-radius:14px;border:none;background:#3B82F6;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.btn-orange{padding:12px 24px;border-radius:14px;border:none;background:#FF6B2C;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.btn-accept:active,.btn-reject:active,.btn-blue:active,.btn-orange:active{transform:scale(.96)}
+
+/* MENU EDITOR */
+.me-item{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid #F5F5F5;transition:background .15s}
+.me-item:active{background:#FAFAFA}
+.me-info{flex:1;min-width:0}
+.me-name{font-weight:600;font-size:14px;color:#1A1A1A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-cat{font-size:11px;color:#9CA3AF;margin-top:2px}
+.me-price{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.me-price-btn{width:32px;height:32px;border-radius:10px;border:1px solid #F0F0F0;background:#FAFAFA;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#666}
+.me-price-btn:active{background:#F0F0F0}
+.me-price-val{font-weight:800;font-size:15px;min-width:56px;text-align:center;color:#FF6B2C}
+.me-toggle{position:relative;width:44px;height:24px;background:#E5E7EB;border-radius:12px;border:none;cursor:pointer;transition:background .2s;flex-shrink:0}
+.me-toggle.on{background:#22C55E}
+.me-toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.me-toggle.on::after{transform:translateX(20px)}
+.me-save{margin:16px 20px;padding:16px;border-radius:16px;background:#FF6B2C;border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 40px);box-shadow:0 4px 16px rgba(255,107,44,.3)}
+
+/* ANALYTICS */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px}
+.stat{background:#FAFAFA;border-radius:16px;padding:18px;border-left:4px solid #ccc}
+.stat-label{font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px}
+.stat-val{font-size:24px;font-weight:900;margin-top:6px}
+.stat-sub{font-size:11px;color:#9CA3AF;margin-top:2px}
+.stat.orange{border-left-color:#FF6B2C}.stat.orange .stat-val{color:#FF6B2C}
+.stat.green{border-left-color:#22C55E}.stat.green .stat-val{color:#22C55E}
+.stat.blue{border-left-color:#3B82F6}.stat.blue .stat-val{color:#3B82F6}
+.stat.yellow{border-left-color:#F59E0B}.stat.yellow .stat-val{color:#F59E0B}
+
+.chart-box{margin:16px 20px;background:#FAFAFA;border-radius:20px;padding:20px}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:16px;color:#1A1A1A}
+.chart-bars{display:flex;align-items:end;gap:4px;height:120px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;border-radius:6px 6px 2px 2px;transition:height .5s ease;min-height:4px}
+.chart-bar-label{font-size:9px;color:#CCC}
+.chart-bar-val{font-size:9px;color:#999;font-weight:600}
+
+.top-items{margin:16px 20px;background:#FAFAFA;border-radius:20px;padding:20px}
+.top-title{font-size:14px;font-weight:700;margin-bottom:14px;color:#1A1A1A}
+.top-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F0F0F0}
+.top-item:last-child{border:none}
+.top-rank{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.top-rank.r1{background:#FF6B2C;color:#fff}
+.top-rank.r2{background:#FFB088;color:#fff}
+.top-rank.r3{background:#FFD4BC;color:#FF6B2C}
+.top-rank.rn{background:#F0F0F0;color:#999}
+.top-name{flex:1;font-size:13px;font-weight:600;color:#1A1A1A}
+.top-sold{font-size:11px;color:#9CA3AF}
+.top-rev{font-size:14px;font-weight:800;color:#FF6B2C}
+
+.range-btns{display:flex;gap:8px;padding:0 20px 16px}
+.range-btn{flex:1;padding:10px 0;border-radius:12px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:#F5F5F5;color:#999}
+.range-btn.on{background:#FF6B2C;color:#fff}
+
+.empty{text-align:center;padding:48px 20px;color:#9CA3AF}
+.empty .ic{font-size:48px;margin-bottom:12px}
+.ntf{position:fixed;top:16px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;color:#fff;max-width:340px;background:#FF6B2C;opacity:0;transition:opacity .3s;pointer-events:none}
+.ntf.show{opacity:1}
+
+
+/* YAZDIR */
+.print-btn{background:none;border:1.5px solid #F0F0F0;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700;color:#9CA3AF;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s}
+.print-btn:hover{border-color:#1A1A1A;color:#1A1A1A}
+@media print{
+  body > *:not(#thermalPrint){display:none!important}
+  #thermalPrint{display:block!important;font-family:monospace;font-size:12px;width:72mm;margin:0;padding:4mm}
+  #thermalPrint .tp-line{border-top:1px dashed #000;margin:4px 0}
+  #thermalPrint .tp-center{text-align:center}
+  #thermalPrint .tp-bold{font-weight:bold;font-size:13px}
+  #thermalPrint .tp-row{display:flex;justify-content:space-between}
+  #thermalPrint .tp-sm{font-size:10px;color:#666}
+}
+/* KURYE PANELİ */
+.courier-header{background:linear-gradient(135deg,#4F46E5,#7C3AED);padding:24px 20px;color:#fff}
+.courier-name{font-size:20px;font-weight:900}
+.courier-sub{font-size:12px;opacity:.8;margin-top:4px}
+.courier-card{margin:12px 20px;border-radius:18px;padding:18px;border:2px solid #E0E7FF;background:#fff;box-shadow:0 2px 12px rgba(79,70,229,.07)}
+.courier-card.available{border-color:#4F46E5;background:linear-gradient(135deg,#EEF2FF 0%,#fff 100%)}
+.courier-order-num{font-size:20px;font-weight:900;color:#1A1A1A}
+.courier-rest{font-size:14px;color:#6B7280;margin-top:2px}
+.courier-addr{font-size:13px;color:#4F46E5;font-weight:600;margin-top:8px;display:flex;align-items:center;gap:6px}
+.courier-items{font-size:12px;color:#9CA3AF;margin-top:6px}
+.courier-total{font-size:22px;font-weight:900;color:#4F46E5;margin-top:8px}
+.courier-btn{width:100%;padding:14px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;transition:all .15s}
+.courier-btn:active{transform:scale(.97)}
+.courier-btn-take{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;box-shadow:0 4px 16px rgba(79,70,229,.3)}
+.courier-btn-deliver{background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.25)}
+.courier-toggle{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:#EEF2FF;color:#4F46E5}
+.courier-toggle.on{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.shake{animation:shake .4s ease}
+.pulse{animation:pulse 2s infinite}
+@keyframes redFlash{0%,100%{background:transparent}25%,75%{background:rgba(239,68,68,.18)}}
+.red-flash{animation:redFlash .6s ease 3}
+@keyframes kitchenPop{from{opacity:0;transform:scale(.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* MUTFAK MODU */
+.kitchen-wrap{display:none;padding:12px 16px 100px}
+.kitchen-wrap.active{display:block}
+.kitchen-card{border-radius:22px;padding:22px;margin-bottom:16px;border:3px solid #F0F0F0;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.05);animation:kitchenPop .35s ease forwards;position:relative}
+.kitchen-card.new-order{border-color:#EF4444;background:linear-gradient(135deg,#FFF5F5 0%,#fff 100%);box-shadow:0 8px 32px rgba(239,68,68,.15)}
+.kitchen-card.confirming{border-color:#3B82F6}
+.kitchen-card.cooking{border-color:#FF6B2C}
+.kitchen-card.ready{border-color:#22C55E;background:linear-gradient(135deg,#F0FDF4 0%,#fff 100%)}
+.kc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.kc-num{font-size:26px;font-weight:900;color:#1A1A1A}
+.kc-badge{font-size:13px;font-weight:800;padding:6px 16px;border-radius:12px}
+.kc-time{font-size:12px;color:#9CA3AF;margin-top:4px;font-weight:600}
+.kc-customer{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;background:#F9FAFB;border-radius:12px}
+.kc-cname{font-size:15px;font-weight:700;color:#1A1A1A}
+.kc-phone{font-size:12px;color:#9CA3AF}
+.kc-addr{font-size:12px;color:#9CA3AF;margin-top:2px}
+.kc-items{margin-bottom:16px}
+.kc-item{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #F5F5F5}
+.kc-item:last-child{border:none}
+.kc-item-name{font-size:16px;font-weight:700;color:#1A1A1A}
+.kc-item-qty{font-size:24px;font-weight:900;color:#FF6B2C;min-width:36px;text-align:right}
+.kc-item-note{font-size:12px;color:#F97316;margin-top:3px;font-style:italic}
+.kc-total{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#FAFAFA;border-radius:12px;margin-bottom:14px}
+.kc-total-label{font-size:13px;font-weight:600;color:#9CA3AF}
+.kc-total-val{font-size:22px;font-weight:900;color:#FF6B2C}
+.kc-pay{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;margin-left:8px}
+.kc-actions{display:flex;gap:10px}
+.kc-btn{flex:1;padding:14px;border-radius:16px;border:none;font-size:15px;font-weight:800;cursor:pointer;transition:all .15s}
+.kc-btn:active{transform:scale(.96)}
+.kc-btn-accept{background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.3)}
+.kc-btn-reject{background:#FEF2F2;color:#EF4444;border:2px solid #FEE2E2}
+.kc-btn-next{background:linear-gradient(135deg,#FF6B2C,#FF8F5C);color:#fff;box-shadow:0 4px 16px rgba(255,107,44,.3)}
+.kc-btn-ready{background:linear-gradient(135deg,#3B82F6,#2563EB);color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.3)}
+.kc-btn-deliver{background:linear-gradient(135deg,#22C55E,#16A34A);color:#fff}
+.kc-empty{text-align:center;padding:80px 20px;color:#9CA3AF}
+.kc-empty .ic{font-size:64px;margin-bottom:16px}
+.kc-empty h3{font-size:18px;font-weight:700;color:#1A1A1A;margin-bottom:8px}
+
+/* MUTFAK MOD BUTONU */
+.kitchen-toggle{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;border:none;font-size:13px;font-weight:800;cursor:pointer;transition:all .2s}
+.kitchen-toggle.off{background:#F3F4F6;color:#6B7280}
+.kitchen-toggle.on{background:linear-gradient(135deg,#FF6B2C,#FF8F5C);color:#fff;box-shadow:0 4px 12px rgba(255,107,44,.3)}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="ntf" id="ntf"></div>
+
+<script>
+const SB="https://fnfczglxcnqgrdiqfuig.supabase.co",SK="sb_publishable_Wn3mXlnDPuNg3NYHVqlvMA_qeCHvft6",HD={apikey:SK,Authorization:"Bearer "+SK};
+
+async function sg(p){try{const r=await fetch(SB+"/rest/v1/"+p,{headers:HD});if(!r.ok)return null;return await r.json()}catch{return null}}
+async function sPatch(table,id,body){
+  try{const r=await fetch(SB+"/rest/v1/"+table+"?id=eq."+id,{method:"PATCH",headers:{...HD,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify(body)});if(!r.ok)return null;return await r.json()}catch{return null}
+}
+
+const kTL=k=>Math.round((k||0)/100),fm=n=>Number(n||0).toLocaleString("tr-TR");
+let nt;function nf(m){const e=document.getElementById("ntf");e.textContent=m;e.classList.add("show");clearTimeout(nt);nt=setTimeout(()=>e.classList.remove("show"),2500)}
+
+const ST={pending:{l:"Yeni",c:"st-pending"},confirmed:{l:"Onaylandı",c:"st-confirmed"},preparing:{l:"Hazırlanıyor",c:"st-preparing"},ready:{l:"Hazır",c:"st-ready"},on_the_way:{l:"Yolda",c:"st-on_the_way"},delivered:{l:"Teslim",c:"st-delivered"},cancelled:{l:"İptal",c:"st-cancelled"}};
+
+let activeTab="orders",orders=[],menuItems=[],menuCats=[],restaurants=[],currentRest=null,orderFilter="all",analyticsRange="today";
+// pollTimer kaldırıldı — Realtime kullanılıyor
+let realtimeWs=null;
+let kitchenMode=false;
+let courierMode=false;
+let courierName=localStorage.getItem("nefiss_courier_name")||"";
+let ownerRestaurantIds=[]; // Bu owner'a ait restoran ID'leri
+let userInteracted=false;
+let lastOrderCount=0;
+let audioCtx=null;
+
+// Ses için kullanıcı etkileşimi gerekli — ilk dokunuşta işaretle
+document.addEventListener("click",()=>{userInteracted=true},{once:false,passive:true});
+document.addEventListener("touchstart",()=>{userInteracted=true},{once:false,passive:true});
+
+function playDing(){
+  if(!userInteracted)return;
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    // Restoran kasası zili — çift tonlu
+    const play=(freq,start,dur)=>{
+      const osc=audioCtx.createOscillator();
+      const gain=audioCtx.createGain();
+      osc.connect(gain);gain.connect(audioCtx.destination);
+      osc.type="sine";osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0,audioCtx.currentTime+start);
+      gain.gain.linearRampToValueAtTime(0.4,audioCtx.currentTime+start+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+start+dur);
+      osc.start(audioCtx.currentTime+start);
+      osc.stop(audioCtx.currentTime+start+dur);
+    };
+    play(880,0,0.4);   // La5
+    play(1100,0.15,0.5); // Do#6
+    play(880,0.35,0.6);  // La5 tekrar
+  }catch(e){console.warn("Audio error:",e)}
+}
+
+function flashScreen(){
+  document.body.classList.remove("red-flash");
+  void document.body.offsetWidth; // reflow
+  document.body.classList.add("red-flash");
+  setTimeout(()=>document.body.classList.remove("red-flash"),2000);
+}
+
+function notifyNewOrder(){
+  playDing();
+  flashScreen();
+  nf("🔔 YENİ SİPARİŞ GELDİ!");
+}
+
+// ═══ INIT ═══
+async function init(){
+  // Onboarding'den gelen owner session kontrolü
+  let ownerRestId=null;
+  try{
+    const ownerData=localStorage.getItem("nefiss_panel_owner");
+    if(ownerData){
+      const owner=JSON.parse(ownerData);
+      ownerRestId=owner.restId||null;
+    }
+  }catch(e){}
+
+  const rs=await sg("restaurants?select=*&is_active=eq.true&order=name");
+  if(rs&&rs.length){
+    restaurants=rs;
+    // Onboarding session'dan owner ID bilgisini al
+    let ownerId=null;
+    try{
+      const od=localStorage.getItem("nefiss_panel_owner");
+      if(od){const p=JSON.parse(od);ownerId=p.id||null}
+    }catch(e){}
+    // Owner'a ait restoranları filtrele
+    if(ownerId){
+      ownerRestaurantIds=rs.filter(r=>r.owner_id===ownerId).map(r=>r.id);
+      // Eğer owner'a ait restoran yoksa tümünü göster (admin/demo)
+      if(ownerRestaurantIds.length===0)ownerRestaurantIds=rs.map(r=>r.id);
+    } else {
+      ownerRestaurantIds=rs.map(r=>r.id);
+    }
+    const ownerRest=ownerRestId?rs.find(r=>r.id===ownerRestId):null;
+    currentRest=ownerRest||rs.find(r=>ownerRestaurantIds.includes(r.id))||rs[0];
+    // Dropdown'ı sadece owner'ın restoranlarıyla sınırla
+    restaurants=ownerRestaurantIds.length>0?rs.filter(r=>ownerRestaurantIds.includes(r.id)):rs;
+  }
+  else{currentRest={id:"demo",name:"Demo Restoran",avg_prep_time:25,commission:12};return renderAll()}
+  
+  await loadOrders();
+  await loadMenu();
+  renderAll();
+  
+  // Poll for new orders every 10 seconds
+  lastOrderCount=orders.filter(o=>o.status==="pending").length;
+  // Polling YOK — Supabase Realtime kullanıyoruz
+  startRealtime();
+}
+
+// ═══ SUPABASE REALTIME ═══
+function startRealtime(){
+  if(realtimeWs){try{realtimeWs.close()}catch(e){}}
+  const wsUrl=SB.replace("https://","wss://").replace("http://","ws://")+"/realtime/v1/websocket?apikey="+SK+"&vsn=1.0.0";
+  try{
+    const ws=new WebSocket(wsUrl);
+    realtimeWs=ws;
+    let hbTimer;
+    ws.onopen=()=>{
+      // orders tablosunu dinle
+      ws.send(JSON.stringify({
+        topic:"realtime:public:orders",
+        event:"phx_join",
+        payload:{config:{broadcast:{ack:false},presence:{key:""},postgres_changes:[
+          {event:"INSERT",schema:"public",table:"orders"},
+          {event:"UPDATE",schema:"public",table:"orders"}
+        ]}},
+        ref:"panel-1"
+      }));
+      hbTimer=setInterval(()=>ws.readyState===1&&ws.send(JSON.stringify({topic:"phoenix",event:"heartbeat",payload:{},ref:"hb"})),25000);
+      console.log("📡 Realtime bağlandı");
+    };
+    ws.onmessage=async(e)=>{
+      try{
+        const msg=JSON.parse(e.data);
+        const evType=msg.payload?.data?.type;
+        if(evType==="INSERT"||evType==="UPDATE"){
+          const rec=msg.payload.data.record;
+          // Siparişi local diziye uygula
+          if(evType==="INSERT"){
+            // Tam veriyi çek (items dahil)
+            const full=await sg("orders?id=eq."+rec.id+"&select=*,items:order_items(*),customer:users(id,full_name,phone)&limit=1");
+            if(full&&full.length){
+              orders.unshift(full[0]);
+              if(rec.status==="pending"){
+                notifyNewOrder();
+                lastOrderCount=(lastOrderCount||0)+1;
+              }
+            }
+          } else {
+            const idx=orders.findIndex(o=>o.id===rec.id);
+            if(idx>=0)Object.assign(orders[idx],rec);
+            else{
+              const full=await sg("orders?id=eq."+rec.id+"&select=*,items:order_items(*),customer:users(id,full_name,phone)&limit=1");
+              if(full&&full.length)orders.unshift(full[0]);
+            }
+          }
+          const pc=orders.filter(o=>o.status==="pending").length;
+          document.title=pc>0?`(${pc}) Nefiss Panel`:"Nefiss Panel";
+          if(kitchenMode)renderKitchen();else{renderOrders();renderAll();}
+        }
+      }catch(err){console.warn("Realtime msg error:",err)}
+    };
+    ws.onerror=(err)=>{console.warn("Realtime WS error:",err)};
+    ws.onclose=()=>{
+      clearInterval(hbTimer);
+      console.log("Realtime kapandı, 5s sonra yeniden bağlanıyor...");
+      setTimeout(startRealtime,5000);
+    };
+  }catch(err){
+    console.warn("Realtime başlatılamadı, polling fallback:",err);
+    // Fallback: 10sn polling
+    setInterval(async()=>{
+      const prev=orders.filter(o=>o.status==="pending").length;
+      await loadOrders();
+      const curr=orders.filter(o=>o.status==="pending").length;
+      if(curr>prev)notifyNewOrder();
+      const pc=orders.filter(o=>o.status==="pending").length;
+      document.title=pc>0?`(${pc}) Nefiss Panel`:"Nefiss Panel";
+      if(kitchenMode)renderKitchen();else renderOrders();
+    },10000);
+  }
+}
+
+async function loadOrders(){
+  const select="*,items:order_items(*),customer:users(id,full_name,phone)";
+  let url;
+  if(currentRest&&currentRest.id==="all"){
+    // Tüm restoranlar: sadece bu owner'a ait olanlar
+    if(ownerRestaurantIds.length>0){
+      url="orders?select="+encodeURIComponent(select)+"&restaurant_id=in.("+ownerRestaurantIds.join(",")+")"+"&order=created_at.desc&limit=100";
+    } else {
+      url="orders?select="+encodeURIComponent(select)+"&order=created_at.desc&limit=100";
+    }
+  } else if(currentRest){
+    url="orders?select="+encodeURIComponent(select)+"&restaurant_id=eq."+currentRest.id+"&order=created_at.desc&limit=100";
+  } else {
+    orders=[];return;
+  }
+  const data=await sg(url);
+  if(data)orders=data;
+}
+
+async function toggleRestaurantOpen(){
+  if(!currentRest||currentRest.id==="all")return;
+  const newState=!currentRest.is_open;
+  const res=await sPatch("restaurants",currentRest.id,{is_open:newState});
+  if(res&&res.length){
+    currentRest.is_open=newState;
+    const ri=restaurants.findIndex(r=>r.id===currentRest.id);
+    if(ri>=0)restaurants[ri].is_open=newState;
+    nf(newState?"✅ Restoran açıldı":"🔴 Restoran kapatıldı");
+    renderAll();
+  }else nf("Güncelleme başarısız!");
+}
+
+async function selectRestaurant(id){
+  if(id==="all"){currentRest={id:"all",name:"Tüm Restoranlar",is_open:true}}
+  else{currentRest=restaurants.find(r=>r.id===id)||restaurants[0]}
+  await loadOrders();
+  await loadMenu();
+  renderAll();
+}
+
+async function loadMenu(){
+  if(!currentRest)return;
+  const cats=await sg("menu_categories?restaurant_id=eq."+currentRest.id+"&order=sort_order");
+  const items=await sg("menu_items?restaurant_id=eq."+currentRest.id+"&order=sort_order");
+  if(cats)menuCats=cats;
+  if(items)menuItems=items;
+}
+
+// ═══ ORDER ACTIONS ═══
+function printOrder(orderId){
+  const o=orders.find(x=>x.id===orderId);if(!o)return;
+  const rest=restaurants.find(r=>r.id===o.restaurant_id);
+  const date=o.created_at?new Date(o.created_at).toLocaleString("tr-TR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"";
+  const itemsHTML=(o.items||[]).map(i=>`
+    <div class="tp-row"><span>${i.quantity}x ${i.name}</span><span>${((i.total_price||0)/100).toLocaleString("tr-TR")} ₺</span></div>
+    ${i.note?`<div class="tp-sm">  → ${i.note}</div>`:""}`).join("");
+  const noteRaw=o.customer_note||"";
+  const custMatch=noteRaw.match(/^\[([^\]]+)\]/);
+  const custName=o.customer?.full_name||custMatch?.[1]||"Misafir";
+  const orderNote=custMatch?noteRaw.replace(custMatch[0],"").trim():noteRaw;
+
+  let tp=document.getElementById("thermalPrint");
+  if(!tp){tp=document.createElement("div");tp.id="thermalPrint";tp.style.display="none";document.body.appendChild(tp)}
+  tp.innerHTML=`
+    <div class="tp-center tp-bold">NEFİSS</div>
+    <div class="tp-center tp-sm">${rest?.name||"Restoran"}</div>
+    <div class="tp-line"></div>
+    <div class="tp-row"><span class="tp-bold">${o.order_number||"—"}</span><span class="tp-sm">${date}</span></div>
+    <div class="tp-sm">👤 ${custName}</div>
+    <div class="tp-line"></div>
+    ${itemsHTML}
+    <div class="tp-line"></div>
+    <div class="tp-row tp-bold"><span>TOPLAM</span><span>${((o.total||0)/100).toLocaleString("tr-TR")} ₺</span></div>
+    <div class="tp-sm">Ödeme: ${o.payment_method==="online"?"💳 Online":o.payment_method==="card_door"?"💳 Kapıda Kart":"💵 Nakit"}</div>
+    <div class="tp-line"></div>
+    <div class="tp-sm">📍 ${o.delivery_address||""}</div>
+    ${orderNote?`<div class="tp-sm">💬 ${orderNote}</div>`:""}
+    <div class="tp-line"></div>
+    <div class="tp-center tp-sm">nefiss.com</div>`;
+  window.print();
+}
+
+async function updateOrder(id,status){
+  const res=await sPatch("orders",id,{status});
+  if(res){
+    const idx=orders.findIndex(o=>o.id===id);
+    if(idx>=0)orders[idx].status=status;
+    nf(status==="cancelled"?"Sipariş reddedildi":"Sipariş güncellendi ✓");
+    // Otomatik iade: iptal edilen online ödeme
+    if(status==="cancelled"){
+      const order=orders.find(o=>o.id===id);
+      if(order?.payment_method==="online"&&order?.payment_status==="paid"){
+        triggerAutoRefund(id);
+      }
+    }
+    if(kitchenMode)renderKitchen();else renderOrders();
+  }else nf("Hata oluştu!")
+}
+
+async function triggerAutoRefund(orderId){
+  nf("💳 Otomatik iade başlatılıyor...");
+  try{
+    const res=await fetch(SB+"/functions/v1/iyzico-refund",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","Authorization":"Bearer "+SK},
+      body:JSON.stringify({orderId})
+    });
+    const data=await res.json();
+    if(data.success&&!data.skipped){
+      nf("✅ İade başarılı — müşteriye "+data.refundId+" no ile iade edildi");
+    } else if(data.skipped){
+      // Online ödeme yoksa sessizce geç
+    } else {
+      nf("⚠️ İade hatası: "+(data.error||"Manuel kontrol gerekli"));
+      console.error("Refund error:",data);
+    }
+  }catch(e){
+    console.error("Auto refund network error:",e);
+    nf("⚠️ İade bağlantı hatası — manuel kontrol edin");
+  }
+}
+
+// ═══ MENU ACTIONS ═══
+async function updatePrice(id,delta){
+  const item=menuItems.find(m=>m.id===id);
+  if(!item)return;
+  const newPrice=Math.max(0,item.price+delta*500); // 5 TL artır/azalt (500 kuruş)
+  const res=await sPatch("menu_items",id,{price:newPrice});
+  if(res){item.price=newPrice;renderMenu()}
+}
+
+async function toggleAvailable(id){
+  const item=menuItems.find(m=>m.id===id);
+  if(!item)return;
+  const res=await sPatch("menu_items",id,{is_available:!item.is_available});
+  if(res){item.is_available=!item.is_available;renderMenu();nf(item.is_available?"Ürün aktif":"Ürün devre dışı")}
+}
+
+// ═══ RENDER ALL ═══
+function renderAll(){
+  const r=currentRest;
+  const newCount=orders.filter(o=>o.status==="pending").length;
+  
+  const restOptions=`<option value="all">🏪 Tüm Restoranlar</option>`+
+    restaurants.map(r=>`<option value="${r.id}" ${currentRest?.id===r.id?"selected":""}>${r.name}</option>`).join("");
+
+  document.getElementById("app").innerHTML=`
+    <div class="hdr">
+      <div class="hdr-top">
+        <div class="hdr-left">
+          <div class="hdr-logo">🏪</div>
+          <div><div class="hdr-name">${r?.name||"Restoran"}</div><div class="hdr-sub">Restoran Paneli</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          ${r?.id&&r.id!=="all"?`
+            <button onclick="toggleRestaurantOpen()" style="display:flex;align-items:center;gap:6px;background:${r?.is_open?"#D1FAE5":"#FEE2E2"};border:none;border-radius:10px;padding:6px 12px;cursor:pointer">
+              <span style="font-size:11px;font-weight:800;color:${r?.is_open?"#059669":"#DC2626"}">${r?.is_open?"● Açık":"● Kapalı"}</span>
+              <div style="width:32px;height:18px;border-radius:9px;background:${r?.is_open?"#22C55E":"#D1D5DB"};position:relative;transition:background .2s">
+                <div style="position:absolute;top:2px;${r?.is_open?"right:2px":"left:2px"};width:14px;height:14px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+              </div>
+            </button>`:`<span class="hdr-status hdr-on">● Tümü</span>`}
+          <button class="kitchen-toggle ${kitchenMode?"on":"off"}" onclick="toggleKitchen()">
+            🍳 ${kitchenMode?"Mutfak":"Mutfak"}
+          </button>
+          <button class="courier-toggle ${courierMode?"on":""}" onclick="toggleCourier()">
+            🛵 ${courierMode?"Kurye":"Kurye"}
+          </button>
+          <button class="hdr-bell" onclick="loadOrders().then(()=>{if(kitchenMode)renderKitchen();else renderOrders()})">🔔${newCount>0?`<span class="hdr-badge pulse">${newCount}</span>`:""}</button>
+        </div>
+      </div>
+      ${restaurants.length>1?`<div style="margin-top:12px"><select onchange="selectRestaurant(this.value)" style="width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid #F0F0F0;font-size:14px;font-weight:600;background:#fff;color:#1A1A1A;cursor:pointer">${restOptions}</select></div>`:""}
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <a href="nefiss-onboarding.html" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid #F0F0F0;background:#fff;color:#9CA3AF;font-size:12px;font-weight:700;text-align:center;text-decoration:none">+ Yeni Restoran Ekle</a>
+        <a href="nefiss.html" style="flex:1;padding:9px;border-radius:12px;border:1.5px solid #F0F0F0;background:#fff;color:#9CA3AF;font-size:12px;font-weight:700;text-align:center;text-decoration:none">👀 Müşteri Görünümü</a>
+      </div>
+    </div>
+    ${kitchenMode?"":`<div class="tabs">
+      <button class="tab ${activeTab==='orders'?'on':''}" onclick="activeTab='orders';renderContent()">📋 Siparişler${newCount>0?' ('+newCount+')':''}</button>
+      <button class="tab ${activeTab==='menu'?'on':''}" onclick="activeTab='menu';renderContent()">🍽️ Menü</button>
+      <button class="tab ${activeTab==='analytics'?'on':''}" onclick="activeTab='analytics';renderContent()">📊 Analiz</button>
+    </div>`}
+    <div id="content"></div>`;
+  renderContent()
+}
+
+function toggleKitchen(){
+  kitchenMode=!kitchenMode;
+  if(kitchenMode)courierMode=false;
+  renderAll();
+  if(kitchenMode)renderKitchen();
+}
+
+function toggleCourier(){
+  if(!courierMode&&!courierName){
+    const name=prompt("Kurye adınız nedir?");
+    if(!name)return;
+    courierName=name.trim();
+    localStorage.setItem("nefiss_courier_name",courierName);
+  }
+  courierMode=!courierMode;
+  if(courierMode)kitchenMode=false;
+  renderAll();
+  if(courierMode)renderCourier();
+}
+
+function renderCourier(){
+  // Hazır siparişler (kurye havuzu) + kendi teslimattaki siparişler
+  const ready=orders.filter(o=>o.status==="ready");
+  const myDeliveries=orders.filter(o=>o.status==="on_the_way"&&(o.courier_name===courierName));
+  const content=document.getElementById("content");
+
+  let html=`<div class="courier-header">
+    <div class="courier-name">🛵 ${courierName}</div>
+    <div class="courier-sub">Kurye Paneli — ${ready.length} sipariş bekliyor</div>
+  </div>`;
+
+  if(myDeliveries.length){
+    html+=`<div style="padding:16px 20px 4px;font-size:12px;font-weight:800;color:#22C55E;text-transform:uppercase;letter-spacing:.5px">Aktif Teslimatlarım</div>`;
+    myDeliveries.forEach(o=>{
+      const rest=restaurants.find(r=>r.id===o.restaurant_id);
+      html+=`<div class="courier-card" style="border-color:#22C55E">
+        <div class="courier-order-num">${o.order_number||"—"}</div>
+        <div class="courier-rest">${rest?.name||"Restoran"}</div>
+        <div class="courier-addr">📍 ${o.delivery_address||""}</div>
+        <div class="courier-total">${((o.total||0)/100).toLocaleString("tr-TR")} ₺ — ${
+          o.payment_method==="online"?"💳 Ödendi":"💵 Tahsil edilecek"}</div>
+        <button class="courier-btn courier-btn-deliver" onclick="courierDeliver('${o.id}')">
+          📦 Teslim Ettim
+        </button>
+      </div>`;
+    });
+  }
+
+  if(ready.length){
+    html+=`<div style="padding:16px 20px 4px;font-size:12px;font-weight:800;color:#4F46E5;text-transform:uppercase;letter-spacing:.5px">Kurye Bekleyen Siparişler</div>`;
+    ready.forEach(o=>{
+      const rest=restaurants.find(r=>r.id===o.restaurant_id);
+      const itemsText=(o.items||[]).map(i=>i.quantity+"× "+i.name).join(", ");
+      html+=`<div class="courier-card available">
+        <div class="courier-order-num">${o.order_number||"—"}</div>
+        <div class="courier-rest">${rest?.name||"Restoran"} • ${rest?.address||""}</div>
+        <div class="courier-addr">📍 ${o.delivery_address||""}</div>
+        <div class="courier-items">${itemsText}</div>
+        <div class="courier-total">${((o.total||0)/100).toLocaleString("tr-TR")} ₺</div>
+        <button class="courier-btn courier-btn-take" onclick="courierTake('${o.id}')">
+          🛵 Siparişi Aldım
+        </button>
+      </div>`;
+    });
+  }
+
+  if(!ready.length&&!myDeliveries.length){
+    html+=`<div style="text-align:center;padding:60px 20px;color:#9CA3AF">
+      <div style="font-size:56px;margin-bottom:12px">🛵</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1A1A">Bekleyen teslimat yok</div>
+      <div style="font-size:13px;margin-top:6px">Siparişler hazır olunca burada görünür</div>
+    </div>`;
+  }
+
+  content.innerHTML=html;
+}
+
+async function courierTake(orderId){
+  // Siparişi on_the_way durumuna al ve kurye adını kaydet
+  const res=await fetch(SB+"/rest/v1/orders?id=eq."+orderId,{
+    method:"PATCH",
+    headers:{...HD,"Content-Type":"application/json",Prefer:"return=representation"},
+    body:JSON.stringify({status:"on_the_way",courier_name:courierName})
+  });
+  if(res.ok){
+    const idx=orders.findIndex(o=>o.id===orderId);
+    if(idx>=0){orders[idx].status="on_the_way";orders[idx].courier_name=courierName}
+    nf("🛵 Sipariş alındı — teslimat başladı!");
+    renderCourier();
+  }else nf("Hata oluştu");
+}
+
+async function courierDeliver(orderId){
+  const res=await sPatch("orders",orderId,{status:"delivered"});
+  if(res){
+    const idx=orders.findIndex(o=>o.id===orderId);
+    if(idx>=0)orders[idx].status="delivered";
+    nf("📦 Teslim edildi! Teşekkürler.");
+    renderCourier();
+  }else nf("Hata oluştu");
+}
+
+function renderContent(){
+  if(kitchenMode){renderKitchen();return}
+  if(courierMode){renderCourier();return}
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.classList.toggle("on",t.textContent.includes(activeTab==="orders"?"Sipariş":activeTab==="menu"?"Menü":"Analiz"))
+  });
+  if(activeTab==="orders")renderOrders();
+  else if(activeTab==="menu")renderMenu();
+  else renderAnalytics()
+}
+
+function renderKitchen(){
+  const active=orders.filter(o=>!["delivered","cancelled"].includes(o.status));
+  const content=document.getElementById("content");
+  if(!active.length){
+    content.innerHTML=`<div class="kitchen-wrap active"><div class="kc-empty"><div class="ic">👨‍🍳</div><h3>Bekleyen sipariş yok</h3><p>Yeni siparişler burada görünecek</p></div></div>`;
+    return;
+  }
+  const cards=active.map(o=>{
+    const isNew=o.status==="pending";
+    const noteRaw=o.customer_note||"";
+    const custMatch=noteRaw.match(/^\[([^\]]+)\]/);
+    const custName=o.customer?.full_name||custMatch?.[1]||"Misafir";
+    const custPhone=o.customer?.phone||"";
+    const orderNote=custMatch?noteRaw.replace(custMatch[0],"").trim():noteRaw;
+    const time=o.created_at?new Date(o.created_at).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}):"";
+    const elapsed=o.created_at?Math.round((Date.now()-new Date(o.created_at))/60000):0;
+
+    const itemsHTML=(o.items||[]).map(i=>`
+      <div class="kc-item">
+        <div><div class="kc-item-name">${i.name}</div>${i.note?`<div class="kc-item-note">📝 ${i.note}</div>`:""}</div>
+        <div class="kc-item-qty">${i.quantity}×</div>
+      </div>`).join("");
+
+    const payBadge=o.payment_method==="online"?
+      `<span class="kc-pay" style="background:#EEF2FF;color:#4F46E5">💳 Online</span>`:
+      o.payment_method==="card_door"?`<span class="kc-pay" style="background:#F0FDF4;color:#16A34A">💳 Kart</span>`:
+      `<span class="kc-pay" style="background:#FFF7ED;color:#C2410C">💵 Nakit</span>`;
+
+    let stClass=isNew?"new-order":o.status==="confirmed"?"confirming":o.status==="preparing"?"cooking":"ready";
+
+    let actHTML="";
+    if(o.status==="pending")actHTML=`
+      <div class="kc-actions">
+        <button class="kc-btn kc-btn-reject" onclick="updateOrder('${o.id}','cancelled')">✕ Reddet</button>
+        <button class="kc-btn kc-btn-accept" onclick="updateOrder('${o.id}','confirmed')">✓ Kabul Et</button>
+      </div>`;
+    else if(o.status==="confirmed")actHTML=`
+      <div class="kc-actions">
+        <button class="kc-btn kc-btn-next" onclick="updateOrder('${o.id}','preparing')">👨‍🍳 Hazırlamaya Başla</button>
+      </div>`;
+    else if(o.status==="preparing")actHTML=`
+      <div class="kc-actions">
+        <button class="kc-btn kc-btn-ready" onclick="updateOrder('${o.id}','ready')">✅ Hazır — Teslimata Ver</button>
+      </div>`;
+    else if(o.status==="ready")actHTML=`
+      <div class="kc-actions">
+        <button class="kc-btn kc-btn-next" onclick="updateOrder('${o.id}','on_the_way')">🛵 Yola Çıktı</button>
+      </div>`;
+    else if(o.status==="on_the_way")actHTML=`
+      <div class="kc-actions">
+        <button class="kc-btn kc-btn-deliver" onclick="updateOrder('${o.id}','delivered')">📦 Teslim Edildi</button>
+      </div>`;
+
+    return `<div class="kitchen-card ${stClass} ${isNew?"shake":""}">
+      <div class="kc-header">
+        <div>
+          <div class="kc-num">${o.order_number||"—"}</div>
+          <div class="kc-time">🕐 ${time} • ${elapsed} dk önce</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <button class="print-btn" onclick="printOrder('${o.id}')">🖨️</button>
+          <span class="kc-badge ${
+          isNew?"st-pending":o.status==="confirmed"?"st-confirmed":
+          o.status==="preparing"?"st-preparing":o.status==="ready"?"st-ready":
+          o.status==="on_the_way"?"st-on_the_way":""}">${
+          isNew?"🔴 Yeni":o.status==="confirmed"?"✅ Onaylandı":
+          o.status==="preparing"?"🍳 Hazırlanıyor":o.status==="ready"?"✅ Hazır":"🛵 Yolda"}</span>
+      </div>
+      <div class="kc-customer">
+        <span style="font-size:22px">👤</span>
+        <div>
+          <div class="kc-cname">${custName}${custPhone?` <span style="font-size:12px;color:#9CA3AF;font-weight:400">${custPhone}</span>`:""}</div>
+          ${o.delivery_address?`<div class="kc-addr">📍 ${o.delivery_address}</div>`:""}
+        </div>
+      </div>
+      <div class="kc-items">${itemsHTML}</div>
+      ${orderNote?`<div style="margin-bottom:12px;padding:10px 14px;background:#FFF7ED;border-radius:12px;font-size:13px;color:#F97316">💬 "${orderNote}"</div>`:""}
+      <div class="kc-total">
+        <span class="kc-total-label">Toplam${payBadge}</span>
+        <span class="kc-total-val">${fm(kTL(o.total))} ₺</span>
+      </div>
+      ${actHTML}
+    </div>`;
+  }).join("");
+
+  content.innerHTML=`<div class="kitchen-wrap active">${cards}</div>`;
+}
+
+// ═══ ORDERS ═══
+function renderOrders(){
+  const filtered=orderFilter==="all"?orders:orders.filter(o=>o.status===orderFilter);
+  const counts={all:orders.length,pending:orders.filter(o=>o.status==="pending").length,preparing:orders.filter(o=>o.status==="preparing").length,ready:orders.filter(o=>o.status==="ready"||o.status==="on_the_way").length,delivered:orders.filter(o=>o.status==="delivered").length};
+
+  let filters=`<div class="ord-filters">
+    ${[{k:"all",l:"Tümü"},{k:"pending",l:"🔴 Yeni"},{k:"preparing",l:"👨‍🍳 Hazırlanan"},{k:"ready",l:"✅ Hazır"},{k:"delivered",l:"📦 Teslim"}].map(f=>
+      `<button class="of ${orderFilter===f.k?'on':''}" onclick="orderFilter='${f.k}';renderOrders()">${f.l}${counts[f.k]?'<span class="badge">'+counts[f.k]+'</span>':''}</button>`
+    ).join("")}</div>`;
+
+  let cards="";
+  if(!filtered.length){
+    cards=`<div class="empty"><div class="ic">📋</div><p>Bu kategoride sipariş yok</p></div>`;
+  } else {
+    filtered.forEach(o=>{
+      const st=ST[o.status]||{l:o.status,c:""};
+      const isNew=o.status==="pending";
+      const time=o.created_at?new Date(o.created_at).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"}):"";
+      const date=o.created_at?new Date(o.created_at).toLocaleDateString("tr-TR",{day:"numeric",month:"short"}):"";
+      
+      // Items with per-item notes
+      const itemsHTML=(o.items||[]).map(i=>`
+        <span class="ocard-item">${i.quantity}x ${i.name}${i.note?` <span style="color:#F97316;font-style:italic">(${i.note})</span>`:""}</span>
+      `).join("");
+      
+      // Customer name: prefer JOIN from users table, fallback to customer_note
+      const noteRaw=o.customer_note||"";
+      const custMatch=noteRaw.match(/^\[([^\]]+)\]/);
+      const noteCustomerName=custMatch?custMatch[1]:null;
+      const orderNote=custMatch?noteRaw.replace(custMatch[0],"").trim():noteRaw;
+      // Real customer from JOIN
+      const realCustomer=o.customer;
+      const custName=realCustomer?.full_name||noteCustomerName||"Misafir";
+      const custPhone=realCustomer?.phone||"";
+      
+      // Restaurant name (shown in "all" mode)
+      const restForOrder=restaurants.find(r=>r.id===o.restaurant_id);
+      
+      let actHTML="";
+      if(o.status==="pending")actHTML=`<div class="act-btns"><button class="btn-reject" onclick="updateOrder('${o.id}','cancelled')">✕ Reddet</button><button class="btn-accept" onclick="updateOrder('${o.id}','confirmed')">✓ Onayla</button></div>`;
+      else if(o.status==="confirmed")actHTML=`<button class="btn-orange" onclick="updateOrder('${o.id}','preparing')">👨‍🍳 Hazırlanıyor</button>`;
+      else if(o.status==="preparing")actHTML=`<button class="btn-blue" onclick="updateOrder('${o.id}','ready')">✅ Hazır</button>`;
+      else if(o.status==="ready")actHTML=`<button class="btn-orange" onclick="updateOrder('${o.id}','on_the_way')">🛵 Yola Çıktı</button>`;
+      else if(o.status==="on_the_way")actHTML=`<button class="btn-accept" onclick="updateOrder('${o.id}','delivered')">📦 Teslim Edildi</button>`;
+
+      cards+=`<div class="ocard ${isNew?'new shake':''}">
+        <div class="ocard-hdr">
+          <div><span class="ocard-id">${o.order_number||"—"}</span><span class="ocard-time">${time} • ${date}</span></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="print-btn" onclick="printOrder('${o.id}')">🖨️ Yazdır</button>
+            <span class="ocard-st ${st.c}">${isNew?"🔴 ":""}${st.l}</span>
+          </div>
+        </div>
+        ${restForOrder&&currentRest?.id==="all"?`<div style="font-size:11px;font-weight:700;color:#FF6B2C;margin-bottom:4px">🏪 ${restForOrder.name}</div>`:""}
+        <div class="ocard-cust">👤 <b>${custName}</b>${custPhone?` <span style="font-size:11px;color:#9CA3AF;font-weight:400">• ${custPhone}</span>`:""}</div>
+        <div class="ocard-addr">${o.delivery_address?'📍 '+o.delivery_address:''}</div>
+        <div class="ocard-items">${itemsHTML}</div>
+        ${orderNote?`<div class="ocard-note">💬 "${orderNote}"</div>`:""}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          ${o.payment_method==="online"?'<span style="font-size:11px;background:#EEF2FF;color:#4F46E5;padding:3px 10px;border-radius:8px;font-weight:700">💳 Online Kart</span>':
+            o.payment_method==="card_door"?'<span style="font-size:11px;background:#F0FDF4;color:#16A34A;padding:3px 10px;border-radius:8px;font-weight:700">💳 Kapıda Kart</span>':
+            '<span style="font-size:11px;background:#FFF7ED;color:#C2410C;padding:3px 10px;border-radius:8px;font-weight:700">💵 Kapıda Nakit</span>'}
+        </div>
+        <div class="ocard-foot">
+          <span class="ocard-total">${fm(kTL(o.total))} ₺</span>
+          ${actHTML}
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById("content").innerHTML=filters+cards
+}
+
+// ═══ MENU EDITOR ═══
+function renderMenu(){
+  const grouped={};
+  menuItems.forEach(item=>{
+    const catName=(menuCats.find(c=>c.id===item.category_id)||{}).name||"Diğer";
+    if(!grouped[catName])grouped[catName]=[];
+    grouped[catName].push(item);
+  });
+
+  let ih="";
+  if(!menuItems.length){
+    ih=`<div class="empty"><div class="ic">🍽️</div><p>Menü ürünü yok</p></div>`;
+  } else {
+    Object.keys(grouped).forEach(cat=>{
+      ih+=`<div style="padding:16px 20px 8px;font-size:13px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px">${cat}</div>`;
+      grouped[cat].forEach(item=>{
+        const priceTL=kTL(item.price);
+        ih+=`<div class="me-item" style="${!item.is_available?'opacity:.45;filter:grayscale(.4)':''}">
+          <div class="me-info">
+            <div class="me-name">${item.name}
+              ${item.is_popular?'<span style="font-size:10px;background:#FFF5F0;color:#FF6B2C;padding:2px 6px;border-radius:6px;font-weight:700;margin-left:4px">Popüler</span>':""}
+              ${!item.is_available?'<span style="font-size:10px;background:#FEE2E2;color:#EF4444;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:4px">Tükendi</span>':""}
+            </div>
+            <div class="me-cat">${item.description||""}</div>
+          </div>
+          <div class="me-price">
+            <button class="me-price-btn" onclick="updatePrice('${item.id}',-1)" title="5₺ azalt">−</button>
+            <span class="me-price-val">${priceTL} ₺</span>
+            <button class="me-price-btn" onclick="updatePrice('${item.id}',1)" title="5₺ artır">+</button>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+            <button class="me-toggle ${item.is_available?'on':''}" onclick="toggleAvailable('${item.id}')" title="${item.is_available?'Tükendi olarak işaretle':'Aktif et'}"></button>
+            <span style="font-size:9px;font-weight:700;color:${item.is_available?'#22C55E':'#EF4444'}">${item.is_available?'Aktif':'Tükendi'}</span>
+          </div>
+        </div>`;
+      });
+    });
+  }
+
+  document.getElementById("content").innerHTML=`
+    <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div><span style="font-size:15px;font-weight:700;color:#1A1A1A">Menü Yönetimi</span>
+        <p style="font-size:12px;color:#9CA3AF;margin-top:2px">Fiyat güncelle • Ürün aç/kapat</p></div>
+      <span style="font-size:13px;color:#9CA3AF;font-weight:600">${menuItems.length} ürün</span>
+    </div>${ih}`
+}
+
+// ═══ ANALYTICS ═══
+function renderAnalytics(){
+  // Calculate stats from orders
+  const now=new Date();
+  let fromDate;
+  if(analyticsRange==="today")fromDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  else if(analyticsRange==="week")fromDate=new Date(now.getTime()-7*86400000);
+  else fromDate=new Date(now.getFullYear(),now.getMonth(),1);
+
+  // Sadece bu owner'ın restoranlarına ait siparişler
+  const rangeOrders=orders.filter(o=>{
+    if(o.status==="cancelled")return false;
+    if(ownerRestaurantIds.length>0&&!ownerRestaurantIds.includes(o.restaurant_id))return false;
+    return new Date(o.created_at)>=fromDate;
+  });
+  const delivered=rangeOrders.filter(o=>o.status==="delivered");
+  
+  const totalRevenue=delivered.reduce((s,o)=>s+kTL(o.total),0);
+  const totalCommission=delivered.reduce((s,o)=>s+kTL(o.commission_amount||0),0);
+  const netRevenue=totalRevenue-totalCommission;
+  const orderCount=rangeOrders.length;
+  const avgOrder=orderCount>0?Math.round(totalRevenue/orderCount):0;
+
+  // Top items
+  const itemMap={};
+  rangeOrders.forEach(o=>(o.items||[]).forEach(i=>{
+    if(!itemMap[i.name])itemMap[i.name]={sold:0,rev:0};
+    itemMap[i.name].sold+=i.quantity;
+    itemMap[i.name].rev+=kTL(i.total_price);
+  }));
+  const topItems=Object.entries(itemMap).map(([n,d])=>({name:n,...d})).sort((a,b)=>b.sold-a.sold).slice(0,5);
+
+  // Hourly (simplified from today's orders)
+  const hourly={};
+  for(let h=9;h<=21;h++)hourly[h]=0;
+  orders.filter(o=>new Date(o.created_at).toDateString()===now.toDateString()).forEach(o=>{
+    const h=new Date(o.created_at).getHours();
+    if(hourly[h]!==undefined)hourly[h]++;
+  });
+  const maxH=Math.max(...Object.values(hourly),1);
+
+  document.getElementById("content").innerHTML=`
+    <div class="range-btns">
+      ${[{k:"today",l:"Bugün"},{k:"week",l:"Bu Hafta"},{k:"month",l:"Bu Ay"}].map(r=>
+        `<button class="range-btn ${analyticsRange===r.k?'on':''}" onclick="analyticsRange='${r.k}';renderAnalytics()">${r.l}</button>`
+      ).join("")}
+    </div>
+
+    <div class="stats">
+      <div class="stat orange"><div class="stat-label">Toplam Ciro</div><div class="stat-val">${fm(totalRevenue)} ₺</div></div>
+      <div class="stat green"><div class="stat-label">Net Gelir</div><div class="stat-val">${fm(netRevenue)} ₺</div><div class="stat-sub">Komisyon: ${fm(totalCommission)} ₺</div></div>
+      <div class="stat blue"><div class="stat-label">Sipariş Sayısı</div><div class="stat-val">${orderCount}</div></div>
+      <div class="stat yellow"><div class="stat-label">Ort. Sipariş</div><div class="stat-val">${fm(avgOrder)} ₺</div></div>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-title">📊 Bugünkü Saatlik Siparişler</div>
+      <div class="chart-bars">
+        ${Object.entries(hourly).map(([h,v])=>`<div class="chart-bar-wrap">
+          <span class="chart-bar-val">${v||""}</span>
+          <div class="chart-bar" style="height:${(v/maxH)*100}%;background:${v===maxH?'#FF6B2C':'#FFD4BC'}"></div>
+          <span class="chart-bar-label">${h}</span>
+        </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="top-items">
+      <div class="top-title">🏆 En Çok Satanlar</div>
+      ${topItems.length?topItems.map((item,i)=>`<div class="top-item">
+        <span class="top-rank ${i===0?'r1':i===1?'r2':i===2?'r3':'rn'}">${i+1}</span>
+        <div style="flex:1"><div class="top-name">${item.name}</div><div class="top-sold">${item.sold} adet</div></div>
+        <span class="top-rev">${fm(item.rev)} ₺</span>
+      </div>`).join(""):`<div class="empty" style="padding:20px"><p>Henüz satış verisi yok</p></div>`}
+    </div>`
+}
+
+init();
+</script>
+</body>
+</html>
